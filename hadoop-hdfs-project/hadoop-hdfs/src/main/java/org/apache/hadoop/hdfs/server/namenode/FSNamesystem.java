@@ -3100,7 +3100,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     // Part II.
     // Allocate a new block, add it to the INode and the BlocksMap. 
-    BlockInfo newBlockInfo = null;
+    Block newBlock = null;
     long offset;
     checkOperation(OperationCategory.WRITE);
     waitForLoadingFSImage();
@@ -3133,8 +3133,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
                                 ExtendedBlock.getLocalBlock(previous));
 
       // allocate new block, record block locations in INode.
-      Block newBlock = createNewBlock(isStriped);
-      newBlockInfo = saveAllocatedBlock(src, fileState.iip, newBlock, targets,
+      newBlock = createNewBlock(isStriped);
+      saveAllocatedBlock(src, fileState.iip, newBlock, targets,
           isStriped);
 
       persistNewBlock(src, pendingFile);
@@ -3145,7 +3145,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     getEditLog().logSync();
 
     // Return located block
-    return makeLocatedBlock(newBlockInfo, targets, offset);
+    return makeLocatedBlock(getStoredBlock(newBlock), targets, offset);
   }
 
   /*
@@ -3602,7 +3602,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         BlockInfo b = v.getPenultimateBlock();
         return b == null ||
             blockManager.checkBlocksProperlyReplicated(
-                src, new BlockInfoContiguous[] { b });
+                src, new BlockInfo[] { b });
       }
     } finally {
       readUnlock();
