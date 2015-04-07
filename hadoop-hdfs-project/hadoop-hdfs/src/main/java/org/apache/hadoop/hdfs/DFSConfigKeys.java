@@ -742,6 +742,12 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
       "dfs.client.hedged.read.threadpool.size";
   public static final int     DEFAULT_DFSCLIENT_HEDGED_READ_THREADPOOL_SIZE = 0;
 
+  public static final String DFS_CLIENT_STRIPED_READ_THREADPOOL_MAX_SIZE =
+      "dfs.client.striped.read.threadpool.size";
+  // With default 3+2 schema, each normal read could span 3 DNs. So this
+  // default value accommodates 6 read streams
+  public static final int DFS_CLIENT_STRIPED_READ_THREADPOOL_MAX_DEFAULT_SIZE = 18;
+
   // Slow io warning log threshold settings for dfsclient and datanode.
   public static final String DFS_CLIENT_SLOW_IO_WARNING_THRESHOLD_KEY =
     "dfs.client.slow.io.warning.threshold.ms";
