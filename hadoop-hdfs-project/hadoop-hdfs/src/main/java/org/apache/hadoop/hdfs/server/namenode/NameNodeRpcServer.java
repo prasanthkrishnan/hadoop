@@ -142,6 +142,7 @@ import org.apache.hadoop.hdfs.server.protocol.StorageReport;
 import org.apache.hadoop.hdfs.server.protocol.VolumeFailureSummary;
 import org.apache.hadoop.io.EnumSetWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.erasurecode.ECSchema;
 import org.apache.hadoop.ipc.ProtobufRpcEngine;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.ipc.RetryCache;
@@ -2044,9 +2045,15 @@ class NameNodeRpcServer implements NamenodeProtocols {
     nn.spanReceiverHost.removeSpanReceiver(id);
   }
 
-  @Override // ClientNameNodeProtocol
+  @Override // ClientProtocol
   public ECInfo getErasureCodingInfo(String src) throws IOException {
     checkNNStartup();
     return namesystem.getErasureCodingInfo(src);
+  }
+
+  @Override // ClientProtocol
+  public ECSchema[] getECSchemas() throws IOException {
+    checkNNStartup();
+    return namesystem.getECSchemas();
   }
 }
