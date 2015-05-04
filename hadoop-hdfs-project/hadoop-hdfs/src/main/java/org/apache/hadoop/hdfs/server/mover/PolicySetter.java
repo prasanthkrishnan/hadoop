@@ -2,6 +2,8 @@ package org.apache.hadoop.hdfs.server.mover;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -14,7 +16,7 @@ public class PolicySetter extends Configured{
 	List<PriorityFile> FileList;
 	long checkpointTime;
 	private DistributedFileSystem getDFS() throws IOException {
-		    FileSystem fs = FileSystem.get(getConf());
+		    FileSystem fs = FileSystem.get(new Configuration());
 		    if (!(fs instanceof DistributedFileSystem)) {
 		      throw new IllegalArgumentException("FileSystem " + fs.getUri() + 
 		      " is not an HDFS file system");
@@ -39,7 +41,7 @@ public class PolicySetter extends Configured{
 			System.out.println("---------------FILE--------------");
 		}
 	}
-	public static void main() throws IOException
+	public static void main(String[] argsv) throws IOException
 	{	PolicySetter deamon=new PolicySetter();
 		DistributedFileSystem dfs;
 		try {
