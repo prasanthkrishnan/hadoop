@@ -3,7 +3,7 @@ package org.apache.hadoop.hdfs.server.mover;
 import org.apache.hadoop.fs.Path;
 
 public class PriorityFile {
-	private String path;
+	private Path path;
 	private int w_count;
 	private int d_count;
 	private int m_count;
@@ -11,24 +11,24 @@ public class PriorityFile {
 	public PriorityFile() {
 	}
 
-	public PriorityFile(String p) {
+	public PriorityFile(Path p) {
 		this.path=p;
 		this.w_count=0;
 		this.d_count=0;
 		this.m_count=0;
 		
 	}
-	public PriorityFile(String p, int pri,int d,int w,int m) {
+	public PriorityFile(Path p, int pri,int d,int w,int m) {
 		this.path=p;
 		this.w_count=w;
 		this.d_count=d;
 		this.m_count=m;
 	}
-	public String getPath()
+	public Path getPath()
 	{
 		return path;
 	}
-	public void setPath(String p)
+	public void setPath(Path p)
 	{
 		this.path=p;
 	}

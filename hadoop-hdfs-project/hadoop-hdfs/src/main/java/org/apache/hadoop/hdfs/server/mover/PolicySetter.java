@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Timestamp;
+import java.util.Iterator;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
@@ -16,6 +18,7 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.server.blockmanagement.BlockStoragePolicySuite;
 import org.apache.hadoop.hdfs.server.mover.PriorityFile;
+import org.apache.hadoop.hdfs.server.mover.TimestampUtils;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 
 public class PolicySetter extends Configured{
@@ -35,6 +38,7 @@ public class PolicySetter extends Configured{
 			}
 			outputFile.createNewFile();
 			dfs = getDFS();
+			checkpointTime=System.currentTimeMillis();
 		}
 		catch(IOException ioe)
 		{
@@ -64,6 +68,32 @@ public class PolicySetter extends Configured{
 			System.out.println("block size : "+status.getBlockSize());
 			System.out.println("length : "+status.getLen());
 			System.out.println("---------------FILE--------------");
+			Path currentFile=status.getPath();
+			PriorityFile currentFilePriority= new PriorityFile(currentFile);
+			byte[] atime=dfs.getXAttr(currentFile, "user.accesstime");
+			if(atime==null)
+				continue;
+			String atimeString=new String(atime);
+			List<java.sql.Timestamp>atimeList=TimestampUtils.convertToTimeStamps(atimeString);
+			for (Timestamp timestamp : atimeList) {
+				if(TimestampUtils.isWithinDay(timestamp, checkpointTime))
+				{
+					currentFilePriority.setD_count((currentFilePriority.getD_count()+1));
+					currentFilePriority.setW_count((currentFilePriority.getW_count()+1));
+					currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
+					continue;
+				}
+					if(TimestampUtils.isWithinWeek(timestamp, checkpointTime))
+					{
+						currentFilePriority.setW_count((currentFilePriority.getW_count()+1));
+						currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
+						continue;
+					}
+				if(TimestampUtils.isWithinMonth(timestamp, checkpointTime))
+					currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
+			}
+			if(currentFilePriority.getD_count()!=0 && currentFilePriority.getM_count()!=0 && currentFilePriority.getW_count()!=0)
+			fileList.add(currentFilePriority);
 		}
 	}
 public void setPolicy(){
@@ -86,7 +116,7 @@ public void setPolicy(){
 			}
 			byte currentStoragePolicy = (byte)0;	
 			try{	
-				currentStoragePolicy = getStoragePolicy(priorityFile.getPath());
+				currentStoragePolicy = getStoragePolicy(priorityFile.getPath().toString());
 			}
 			catch(Exception e){
 				System.out.println("Caught unknown exception, continuing!!!");
@@ -97,7 +127,7 @@ public void setPolicy(){
 			}
 			if(currentStoragePolicy != targetStoragePolicy){
 				try {
-					changePolicy(priorityFile.getPath(), targetStoragePolicy);
+					changePolicy(priorityFile.getPath().toString(), targetStoragePolicy);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
