@@ -10,6 +10,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.server.mover.PriorityFile;
+import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 
 public class PolicySetter extends Configured{
 
