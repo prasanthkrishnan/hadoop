@@ -1,8 +1,7 @@
+package org.apache.hadoop.hdfs.server.mover;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-package org.apache.hadoop.hdfs.server.mover;
 
 public class TimestampUtils{
 
