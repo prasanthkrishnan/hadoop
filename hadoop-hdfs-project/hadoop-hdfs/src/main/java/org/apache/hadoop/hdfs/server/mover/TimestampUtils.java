@@ -70,7 +70,7 @@ public class TimestampUtils{
 	}	
 	*/
 
-	
+	/*	
 	public static void main(String[] args){
 		List<Timestamp> stamps = convertToTimeStamps("3434345,2356453432,1430712858,1430629140,1430110756,1430283556,1428124664,14282974644343");
 		for(Timestamp t: stamps){
@@ -78,22 +78,18 @@ public class TimestampUtils{
 		}
 	
 		long currentTime = milliToSeconds(System.currentTimeMillis());
-		/*	
 		System.out.println(isWithinDay(stamps.get(0), currentTime));
 		System.out.println(isWithinDay(stamps.get(1), currentTime));
 		System.out.println(isWithinDay(stamps.get(2), currentTime));
-		*/
-		/*
 		System.out.println(isWithinDay(stamps.get(3), currentTime));
 		System.out.println(isWithinWeek(stamps.get(4), currentTime));
 		System.out.println(isWithinWeek(stamps.get(5), currentTime));
 		System.out.println(isWithinDay(stamps.get(5), currentTime));
-		*/
 		System.out.println(isWithinMonth(stamps.get(4), currentTime));
 		System.out.println(isWithinMonth(stamps.get(5), currentTime));
 		System.out.println(isWithinMonth(stamps.get(6), currentTime));
 		System.out.println(isWithinMonth(stamps.get(7), currentTime));
 		
-	}
+	}*/
 	
 }
