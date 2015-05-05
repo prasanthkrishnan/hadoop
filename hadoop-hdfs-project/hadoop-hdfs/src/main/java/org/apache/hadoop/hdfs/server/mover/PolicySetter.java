@@ -105,7 +105,7 @@ public class PolicySetter extends Configured{
 			}
 			//if(currentFilePriority.getD_count()!=0 && currentFilePriority.getM_count()!=0 && currentFilePriority.getW_count()!=0){
 			fileList.add(currentFilePriority);
-			System.out.println("added file");
+			System.out.println("filelist size" + fileList.size());
 				//}
 		}
 	}
@@ -127,6 +127,7 @@ public class PolicySetter extends Configured{
 			else if(d >10){
 				targetStoragePolicy = HdfsConstants.ALLSSD_STORAGE_POLICY_ID;	
 			}
+			System.out.println("targetStorgePolicy " + (int)targetStorgePolicy);
 			byte currentStoragePolicy = (byte)0;	
 			try{	
 				currentStoragePolicy = getStoragePolicy(priorityFile.getPath().toString());
@@ -135,14 +136,15 @@ public class PolicySetter extends Configured{
 				System.out.println("Caught unknown exception, continuing!!!");
 				continue;
 			}
-			//			if(currentStoragePolicy == (byte)0){
-			//				continue;
-			//			}
+			System.out.println("currentStorgePolicy " + (int)currentStorgePolicy);
+			/*if(currentStoragePolicy == (byte)0){
+				continue;
+			}*/
 			if(currentStoragePolicy != targetStoragePolicy){
+				System.out.println("current policy not equals target policy ");
 				try {
 					changePolicy(priorityFile.getPath().toString(), targetStoragePolicy);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					continue;
 				}
@@ -152,6 +154,7 @@ public class PolicySetter extends Configured{
 
 	private void changePolicy(String path, byte targetStoragePolicy) throws IOException{
 		setStoragePolicy(path, byteToStringStoragePolicy(targetStoragePolicy));						
+		System.out.println("wrriiiting to file");
 		writePathToFile(path);
 	}
 
