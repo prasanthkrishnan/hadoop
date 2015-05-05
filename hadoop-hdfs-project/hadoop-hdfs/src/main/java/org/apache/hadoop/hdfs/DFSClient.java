@@ -69,6 +69,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -239,6 +240,7 @@ import com.google.common.net.InetAddresses;
 public class DFSClient implements java.io.Closeable, RemotePeerFactory,
     DataEncryptionKeyFactory {
   public static final Log LOG = LogFactory.getLog(DFSClient.class);
+  public static final String ACCESSTIMES = "user.accesstimes";
   public static final long SERVER_DEFAULTS_VALIDITY_PERIOD = 60 * 60 * 1000L; // 1 hour
   static final int TCP_WINDOW_SIZE = 128 * 1024; // 128 KB
 
@@ -1495,6 +1497,15 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
       throws IOException, UnresolvedLinkException {
     checkOpen();
     //    Get block info from namenode
+//    System.out.println("sankalpa: " + Thread.currentThread().getStackTrace()[1].getClassName() + ": " + Thread.currentThread().getStackTrace()[1].getMethodName());
+    AddAccessTime(src);
+//    try{
+//        throw new RuntimeException("sankalpa");
+//    }
+//    catch(Exception e){
+//        e.printStackTrace();
+//    }
+//    System.out.println("-----------------------------------");    	
     return new DFSInputStream(this, src, buffersize, verifyChecksum);
   }
 
@@ -1670,6 +1681,15 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
         buffersize, dfsClientConf.createChecksum(checksumOpt),
         favoredNodeStrs);
     beginFileLease(result.getFileId(), result);
+//    System.out.println("sankalpa: " + Thread.currentThread().getStackTrace()[1].getClassName() + ": " + Thread.currentThread().getStackTrace()[1].getMethodName());
+    AddAccessTime(src);
+//    try{
+//        throw new RuntimeException("sankalpa");
+//    }
+//    catch(Exception e){
+//        e.printStackTrace();
+//    }
+//    System.out.println("-----------------------------------");    	
     return result;
   }
   
@@ -1802,6 +1822,15 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
     checkOpen();
     final DFSOutputStream result = callAppend(src, buffersize, progress);
     beginFileLease(result.getFileId(), result);
+//    System.out.println("sankalpa: " + Thread.currentThread().getStackTrace()[1].getClassName() + ": " + Thread.currentThread().getStackTrace()[1].getMethodName());
+    AddAccessTime(src);
+//    try{
+//        throw new RuntimeException("sankalpa");
+//    }
+//    catch(Exception e){
+//        e.printStackTrace();
+//    }
+//    System.out.println("-----------------------------------");    	
     return result;
   }
 
@@ -3190,5 +3219,36 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
    */
   public SaslDataTransferClient getSaslDataTransferClient() {
     return saslClient;
+  }
+  
+  /**
+   * Records the access time as part of an Extended File Attribute.
+   * @param f Path of the file accessed
+   */
+  void AddAccessTime(String src) {
+    try {
+    	byte [] attr = getXAttr(src, ACCESSTIMES);
+    	long nowL = System.currentTimeMillis()/1000L;
+    	String nowS = Long.toString(nowL);
+    	//byte [] nowB = ByteBuffer.allocate(8).putLong(nowL).array();
+    	if (attr == null) {
+    		setXAttr(src, ACCESSTIMES, nowS.getBytes(), EnumSet.of(XAttrSetFlag.CREATE));
+    		//String nowS = new String(nowB);  // for print statement below
+    		System.out.println("**************Inserting attribute for " + src + " : " + nowS);
+    		return;
+    	}
+    	//byte[] newAttr = new byte[attr.length + nowB.length + 1];
+    	//System.arraycopy(attr, 0, newAttr, 0, attr.length);
+    	// add comma in between
+    	//System.arraycopy(nowB, 0, newAttr, attr.length, nowB.length);
+    	String attrS = new String(attr);
+    	String newAttr = attrS + "," + nowS;
+    	setXAttr(src, ACCESSTIMES, newAttr.getBytes(), EnumSet.of(XAttrSetFlag.CREATE,
+    			XAttrSetFlag.REPLACE));
+    	//String newAttrS = new String(newAttr);  // for print statement below
+    	System.out.println("**************Appending attribute for " + src + " : " + newAttr);
+    } catch(IOException e) {
+        System.out.println("***************IOException");
+    }
   }
 }

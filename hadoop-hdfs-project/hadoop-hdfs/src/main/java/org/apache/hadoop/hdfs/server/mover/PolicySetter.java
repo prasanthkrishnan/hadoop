@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
@@ -20,7 +20,7 @@ import org.apache.hadoop.hdfs.server.blockmanagement.BlockStoragePolicySuite;
 import org.apache.hadoop.hdfs.server.mover.PriorityFile;
 import org.apache.hadoop.hdfs.server.mover.TimestampUtils;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-
+import org.apache.hadoop.hdfs.DFSClient;
 public class PolicySetter extends Configured{
 
 	List<PriorityFile> fileList;
@@ -39,6 +39,7 @@ public class PolicySetter extends Configured{
 			outputFile.createNewFile();
 			dfs = getDFS();
 			checkpointTime=System.currentTimeMillis();
+			fileList = new ArrayList<PriorityFile>();
 		}
 		catch(IOException ioe)
 		{
@@ -47,13 +48,14 @@ public class PolicySetter extends Configured{
 	}
 
 	private DistributedFileSystem getDFS() throws IOException {
-		    FileSystem fs = FileSystem.get(new Configuration());
-		    if (!(fs instanceof DistributedFileSystem)) {
-		      throw new IllegalArgumentException("FileSystem " + fs.getUri() + 
-		      " is not an HDFS file system");
-		    }
-		    return (DistributedFileSystem)fs;
-		  }
+		FileSystem fs = FileSystem.get(new Configuration());
+		if (!(fs instanceof DistributedFileSystem)) {
+			throw new IllegalArgumentException("FileSystem " + fs.getUri() + " is not an HDFS file system");
+		}
+		System.out.println("System URI:" + fs.getUri());
+		return (DistributedFileSystem)fs;
+	}
+
 	private void getFiles() throws FileNotFoundException, IllegalArgumentException, IOException
 	{
 		RemoteIterator<LocatedFileStatus> ri=dfs.listFiles(new Path("/"), true);
@@ -70,33 +72,44 @@ public class PolicySetter extends Configured{
 			System.out.println("---------------FILE--------------");
 			Path currentFile=status.getPath();
 			PriorityFile currentFilePriority= new PriorityFile(currentFile);
-			byte[] atime=dfs.getXAttr(currentFile, "user.accesstime");
-			if(atime==null)
+			byte[] atime=dfs.getXAttr(currentFile, DFSClient.ACCESSTIMES);
+			if(atime==null){
 				continue;
-			String atimeString=new String(atime);
+			}
+			System.out.println("atime" + String.valueOf(atime));
+			String atimeString = new String(atime);
 			List<java.sql.Timestamp>atimeList=TimestampUtils.convertToTimeStamps(atimeString);
+			System.out.println("Timelist Size" + atimeList.size());
 			for (Timestamp timestamp : atimeList) {
 				if(TimestampUtils.isWithinDay(timestamp, checkpointTime))
 				{
+					System.out.println("IsWithinDay");
 					currentFilePriority.setD_count((currentFilePriority.getD_count()+1));
 					currentFilePriority.setW_count((currentFilePriority.getW_count()+1));
 					currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
 					continue;
 				}
-					if(TimestampUtils.isWithinWeek(timestamp, checkpointTime))
-					{
-						currentFilePriority.setW_count((currentFilePriority.getW_count()+1));
-						currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
-						continue;
-					}
-				if(TimestampUtils.isWithinMonth(timestamp, checkpointTime))
+				if(TimestampUtils.isWithinWeek(timestamp, checkpointTime))
+				{
+					System.out.println("IsWithinWeek");
+					currentFilePriority.setW_count((currentFilePriority.getW_count()+1));
 					currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
+					continue;
+				}
+				if(TimestampUtils.isWithinMonth(timestamp, checkpointTime)){
+					System.out.println("IsWithinMonth");
+					currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
+					continue;
+				}
+				System.out.println("Not withinnnnnnn anything");
 			}
-			if(currentFilePriority.getD_count()!=0 && currentFilePriority.getM_count()!=0 && currentFilePriority.getW_count()!=0)
+			//if(currentFilePriority.getD_count()!=0 && currentFilePriority.getM_count()!=0 && currentFilePriority.getW_count()!=0){
 			fileList.add(currentFilePriority);
+			System.out.println("added file");
+				//}
 		}
 	}
-public void setPolicy(){
+	public void setPolicy(){
 		for(PriorityFile priorityFile: fileList){
 			int m = priorityFile.getM_count();
 			int w = priorityFile.getW_count();
@@ -122,9 +135,9 @@ public void setPolicy(){
 				System.out.println("Caught unknown exception, continuing!!!");
 				continue;
 			}
-			if(currentStoragePolicy == (byte)0){
-				continue;
-			}
+			//			if(currentStoragePolicy == (byte)0){
+			//				continue;
+			//			}
 			if(currentStoragePolicy != targetStoragePolicy){
 				try {
 					changePolicy(priorityFile.getPath().toString(), targetStoragePolicy);
@@ -194,9 +207,10 @@ public void setPolicy(){
 			return storagePolicyId;
 		}
 	}
-	public static void main(String[] args) throws IOException
-	{	PolicySetter deamon=new PolicySetter();	
-	try {
+	
+	public static void main(String[] args) throws IOException{	
+		PolicySetter deamon=new PolicySetter();	
+		try {
 			deamon.getFiles();
 		} catch (FileNotFoundException e) {
 			System.out.println("Unable to scan DFS from '/'");
@@ -206,7 +220,6 @@ public void setPolicy(){
 		} catch (IOException e) {
 			throw e;
 		}
-		//deamon.setPolicy();
+		deamon.setPolicy();
 	}
 }
-

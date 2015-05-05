@@ -13,8 +13,10 @@ public class TimestampUtils{
 	public static List<Timestamp> convertToTimeStamps(String epochString){	
 		List<Timestamp> toReturn = new ArrayList<Timestamp>();
 		String[] splitString = epochString.split(",");
+		System.out.println("SplitString Size" + splitString.length);
 		for(String s: splitString){
 			long seconds = Long.parseLong(s);
+			System.out.println("Seconds:" + seconds);
 			Timestamp timestamp = new Timestamp(secondsToMilli(seconds));
 			toReturn.add(timestamp);	
 		}
