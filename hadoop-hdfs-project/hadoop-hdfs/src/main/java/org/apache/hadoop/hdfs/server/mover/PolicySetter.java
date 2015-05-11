@@ -1,4 +1,5 @@
 package org.apache.hadoop.hdfs.server.mover;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,6 +22,8 @@ import org.apache.hadoop.hdfs.server.mover.PriorityFile;
 import org.apache.hadoop.hdfs.server.mover.TimestampUtils;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.hdfs.DFSClient;
+import org.apache.hadoop.hdfs.server.mover.Mover;
+
 public class PolicySetter extends Configured{
 
 	List<PriorityFile> fileList;
@@ -150,6 +153,10 @@ public class PolicySetter extends Configured{
 				}
 			} 
 		}
+		//Make call to mover
+		String arg1 = "-p " + OUTPUTFILENAME;
+		String[] args = {"", arg1};
+		Mover.main(args);
 	}
 
 	private void changePolicy(String path, byte targetStoragePolicy) throws IOException{
