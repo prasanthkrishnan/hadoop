@@ -117,6 +117,9 @@ public class PolicySetter extends Configured{
 			int m = priorityFile.getM_count();
 			int w = priorityFile.getW_count();
 			int d = priorityFile.getD_count();
+			System.out.println("days " + d);
+			System.out.println("weeks " + w);
+			System.out.println("months " + m);
 			byte targetStoragePolicy = HdfsConstants.HOT_STORAGE_POLICY_ID;
 			if(m == 0){
 				targetStoragePolicy = HdfsConstants.COLD_STORAGE_POLICY_ID;	
