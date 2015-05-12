@@ -41,7 +41,7 @@ public class PolicySetter extends Configured{
 			}
 			outputFile.createNewFile();
 			dfs = getDFS();
-			checkpointTime=System.currentTimeMillis();
+			checkpointTime=System.currentTimeMillis()/1000L;
 			fileList = new ArrayList<PriorityFile>();
 		}
 		catch(IOException ioe)
@@ -79,11 +79,12 @@ public class PolicySetter extends Configured{
 			if(atime==null){
 				continue;
 			}
-			System.out.println("atime" + String.valueOf(atime));
+			System.out.println("atime " + atime.toString());
 			String atimeString = new String(atime);
 			List<java.sql.Timestamp>atimeList=TimestampUtils.convertToTimeStamps(atimeString);
-			System.out.println("Timelist Size" + atimeList.size());
+			System.out.println("Timelist Size " + atimeList.size());
 			for (Timestamp timestamp : atimeList) {
+				System.out.println("checkpointTime " + checkpointTime);
 				if(TimestampUtils.isWithinDay(timestamp, checkpointTime))
 				{
 					System.out.println("IsWithinDay");
@@ -104,7 +105,7 @@ public class PolicySetter extends Configured{
 					currentFilePriority.setM_count((currentFilePriority.getM_count()+1));
 					continue;
 				}
-				System.out.println("Not withinnnnnnn anything");
+				System.out.println("Not withinnnnnnn anything" + timestamp.toString());
 			}
 			//if(currentFilePriority.getD_count()!=0 && currentFilePriority.getM_count()!=0 && currentFilePriority.getW_count()!=0){
 			fileList.add(currentFilePriority);
@@ -113,6 +114,7 @@ public class PolicySetter extends Configured{
 		}
 	}
 	public void setPolicy(){
+		int filesPolicyChanged = 0;
 		for(PriorityFile priorityFile: fileList){
 			int m = priorityFile.getM_count();
 			int w = priorityFile.getW_count();
@@ -139,6 +141,7 @@ public class PolicySetter extends Configured{
 				currentStoragePolicy = getStoragePolicy(priorityFile.getPath().toString());
 			}
 			catch(Exception e){
+				e.printStackTrace();
 				System.out.println("Caught unknown exception, continuing!!!");
 				continue;
 			}
@@ -148,6 +151,7 @@ public class PolicySetter extends Configured{
 			}*/
 			if(currentStoragePolicy != targetStoragePolicy){
 				System.out.println("current policy not equals target policy ");
+				filesPolicyChanged++;
 				try {
 					changePolicy(priorityFile.getPath().toString(), targetStoragePolicy);
 				} catch (IOException e) {
@@ -156,10 +160,13 @@ public class PolicySetter extends Configured{
 				}
 			} 
 		}
-		//Make call to mover
-		String arg1 = "-f " + OUTPUTFILENAME;
-		String[] args = {"", arg1};
-		Mover.main(args);
+		System.out.println("No of files with Policy changed: " + filesPolicyChanged);
+		if(filesPolicyChanged != 0){
+			//Make call to mover
+			String arg1 = "-f " + OUTPUTFILENAME;
+			String[] args = {"", arg1};
+			Mover.main(args);		
+		}
 	}
 
 	private void changePolicy(String path, byte targetStoragePolicy) throws IOException{
