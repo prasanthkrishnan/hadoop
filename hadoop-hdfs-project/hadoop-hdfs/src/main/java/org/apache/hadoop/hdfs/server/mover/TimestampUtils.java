@@ -5,9 +5,16 @@ import java.util.concurrent.TimeUnit;
 
 public class TimestampUtils{
 
-	public final static long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
-	public final static long MILLIS_PER_WEEK = 24 * 60 * 60 * 1000L * 7;
-	public final static long MILLIS_PER_MONTH = 24 * 60 * 60 * 1000L * 30;
+	//public final static long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
+	//public final static long MILLIS_PER_WEEK = 24 * 60 * 60 * 1000L * 7;
+	//public final static long MILLIS_PER_MONTH = 24 * 60 * 60 * 1000L * 30;
+	
+	//Ten Minute
+	public final static long MILLIS_PER_DAY = (60 * 60 * 1000L)/6;
+	//Half-hour
+	public final static long MILLIS_PER_WEEK = (60 * 60 * 1000L)/2;
+	//1-hour
+	public final static long MILLIS_PER_MONTH = 60 * 60 * 1000L;
 	
 	//Assume input in seconds
 	public static List<Timestamp> convertToTimeStamps(String epochString){	
