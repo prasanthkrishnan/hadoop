@@ -222,8 +222,8 @@ public class PolicySetter extends Configured{
 	}
 
 	public static void main(String[] args) throws IOException{	
-		System.out.println("-----------README Storage policy " + String.valueOf(getStoragePolicy("/README.txt")));
 		PolicySetter deamon=new PolicySetter();	
+		System.out.println("-----------README Storage policy " + String.valueOf(deamon.getStoragePolicy("/README.txt")));
 		try {
 			deamon.getFiles();
 		} catch (FileNotFoundException e) {
