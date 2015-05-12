@@ -9,6 +9,9 @@ import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map.Entry;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.conf.Configured;
@@ -31,7 +34,7 @@ public class PolicySetter extends Configured{
 	private PrintWriter out = null;
 	private DistributedFileSystem dfs = null;
 	int filesPolicyChanged = 0;
-
+	private HashMap<String,Long> policyChangeLogMap = new HashMap<String,Long>() 
 	public PolicySetter(){
 		try
 		{
@@ -150,9 +153,20 @@ public class PolicySetter extends Configured{
 			e.printStackTrace();
 		}
 		System.out.println("currentStorgePolicy " + currentStoragePolicy);
+		
 		if(currentStoragePolicy != targetStoragePolicy){
 			System.out.println("current policy not equals target policy ");
 			filesPolicyChanged++;
+			String PolicyChangeLog = currentStoragePolicy+"  ---- Changed to ----  "+targetStoragePolicy;
+			//adding to the log hashmap
+			if(policyChangeLogMap.containsKey(PolicyChangeLog)){
+				Long countPolicyChange = policyChangeLogMap.get(PolicyChangeLog);
+				countPolicyChange++;
+				policyChangeLogMap.put(PolicyChangeLog, countPolicyChange);
+			}
+			else{
+				policyChangeLogMap.put(PolicyChangeLog, 1);
+			}
 			try {
 				changePolicy(priorityFile.getPath().toUri().getPath(), targetStoragePolicy);
 			} catch (IOException e) {
@@ -160,7 +174,15 @@ public class PolicySetter extends Configured{
 			}
 		} 
 	}
-
+	public void displayPolicyChangeLog(){
+		System.out.println("------ Policy Change Log -------");
+		System.out.println("Change---------------------Count");
+				
+		for(Map.Entry<String,Long> e : policyChangeLogMap.entrySet()){
+			System.out.println(e.getKey()+"		"+e.getValue());
+		}
+		System.out.println("--------------------------------");
+	}
 	private void changePolicy(String path, byte targetStoragePolicy) throws IOException{
 		setStoragePolicy(path, byteToStringStoragePolicy(targetStoragePolicy));						
 		System.out.println("wrriiiting to file");
@@ -226,6 +248,7 @@ public class PolicySetter extends Configured{
 		System.out.println("-----------README Storage policy " + String.valueOf(deamon.getStoragePolicy("/README.txt")));
 		try {
 			deamon.getFiles();
+			deamon.displayPolicyChangeLog();
 		} catch (FileNotFoundException e) {
 			System.out.println("Unable to scan DFS from '/'");
 			throw e;
