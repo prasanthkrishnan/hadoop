@@ -130,7 +130,7 @@ public class PolicySetter extends Configured{
 			else if(d >10){
 				targetStoragePolicy = HdfsConstants.ALLSSD_STORAGE_POLICY_ID;	
 			}
-			System.out.println("targetStorgePolicy " + (int)targetStorgePolicy);
+			System.out.println("targetStorgePolicy " + targetStoragePolicy);
 			byte currentStoragePolicy = (byte)0;	
 			try{	
 				currentStoragePolicy = getStoragePolicy(priorityFile.getPath().toString());
@@ -139,7 +139,7 @@ public class PolicySetter extends Configured{
 				System.out.println("Caught unknown exception, continuing!!!");
 				continue;
 			}
-			System.out.println("currentStorgePolicy " + (int)currentStorgePolicy);
+			System.out.println("currentStorgePolicy " + currentStoragePolicy);
 			/*if(currentStoragePolicy == (byte)0){
 				continue;
 			}*/
