@@ -157,7 +157,7 @@ public class PolicySetter extends Configured{
 		if(currentStoragePolicy != targetStoragePolicy){
 			System.out.println("current policy not equals target policy ");
 			filesPolicyChanged++;
-			String PolicyChangeLog = currentStoragePolicy+"  ---- Changed to ----  "+targetStoragePolicy;
+			String PolicyChangeLog = byteToStringStoragePolicy(currentStoragePolicy)+"  ---- Changed to ----  " + byteToStringStoragePolicy(targetStoragePolicy);
 			//adding to the log hashmap
 			if(policyChangeLogMap.containsKey(PolicyChangeLog)){
 				Long countPolicyChange = policyChangeLogMap.get(PolicyChangeLog);
