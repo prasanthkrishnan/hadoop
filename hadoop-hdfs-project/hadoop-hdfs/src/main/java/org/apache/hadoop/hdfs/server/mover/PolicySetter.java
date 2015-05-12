@@ -34,7 +34,7 @@ public class PolicySetter extends Configured{
 	private PrintWriter out = null;
 	private DistributedFileSystem dfs = null;
 	int filesPolicyChanged = 0;
-	private HashMap<String,Long> policyChangeLogMap = new HashMap<String,Long>() 
+	private HashMap<String,Long> policyChangeLogMap = new HashMap<String,Long>(); 
 	public PolicySetter(){
 		try
 		{
@@ -165,7 +165,7 @@ public class PolicySetter extends Configured{
 				policyChangeLogMap.put(PolicyChangeLog, countPolicyChange);
 			}
 			else{
-				policyChangeLogMap.put(PolicyChangeLog, 1);
+				policyChangeLogMap.put(PolicyChangeLog, (long)1);
 			}
 			try {
 				changePolicy(priorityFile.getPath().toUri().getPath(), targetStoragePolicy);
@@ -178,7 +178,7 @@ public class PolicySetter extends Configured{
 		System.out.println("------ Policy Change Log -------");
 		System.out.println("Change---------------------Count");
 				
-		for(Map.Entry<String,Long> e : policyChangeLogMap.entrySet()){
+		for(Entry<String,Long> e : policyChangeLogMap.entrySet()){
 			System.out.println(e.getKey()+"		"+e.getValue());
 		}
 		System.out.println("--------------------------------");
