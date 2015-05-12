@@ -143,7 +143,7 @@ public class PolicySetter extends Configured{
 		System.out.println("targetStorgePolicy " + targetStoragePolicy);
 		byte currentStoragePolicy = (byte)0;	
 		try{	
-			currentStoragePolicy = getStoragePolicy(priorityFile.getPath().getName());
+			currentStoragePolicy = getStoragePolicy(priorityFile.getPath().toUri().getPath());
 		}
 		catch(Exception e){
 			System.out.println("Caught unknown exception, continuing!!!");
@@ -154,7 +154,7 @@ public class PolicySetter extends Configured{
 			System.out.println("current policy not equals target policy ");
 			filesPolicyChanged++;
 			try {
-				changePolicy(priorityFile.getPath().getName(), targetStoragePolicy);
+				changePolicy(priorityFile.getPath().toUri().getPath(), targetStoragePolicy);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
