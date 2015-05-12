@@ -26,11 +26,11 @@ import org.apache.hadoop.hdfs.server.mover.Mover;
 
 public class PolicySetter extends Configured{
 
-	List<PriorityFile> fileList;
 	long checkpointTime;
 	private static final String OUTPUTFILENAME = "mover_input.txt";
 	private PrintWriter out = null;
 	private DistributedFileSystem dfs = null;
+	int filesPolicyChanged = 0;
 
 	public PolicySetter(){
 		try
@@ -42,7 +42,6 @@ public class PolicySetter extends Configured{
 			outputFile.createNewFile();
 			dfs = getDFS();
 			checkpointTime=System.currentTimeMillis()/1000L;
-			fileList = new ArrayList<PriorityFile>();
 		}
 		catch(IOException ioe)
 		{
@@ -66,7 +65,9 @@ public class PolicySetter extends Configured{
 		{
 			LocatedFileStatus status=ri.next();
 			System.out.println("---------------FILE--------------");
-			System.out.println(status.getPath());
+			System.out.println("Path: " + status.getPath());
+			System.out.println("Path name: " + status.getPath().getName());
+			System.out.println("Parent name: " + status.getPath().getParent());
 			System.out.println("is dir: "+status.isDirectory());
 			System.out.println("is file : "+status.isFile());
 			System.out.println("is symlink : "+status.isSymlink());
@@ -77,6 +78,7 @@ public class PolicySetter extends Configured{
 			PriorityFile currentFilePriority= new PriorityFile(currentFile);
 			byte[] atime=dfs.getXAttr(currentFile, DFSClient.ACCESSTIMES);
 			if(atime==null){
+				System.out.println("atime is null!");
 				continue;
 			}
 			System.out.println("atime " + atime.toString());
@@ -107,58 +109,8 @@ public class PolicySetter extends Configured{
 				}
 				System.out.println("Not withinnnnnnn anything" + timestamp.toString());
 			}
-			//if(currentFilePriority.getD_count()!=0 && currentFilePriority.getM_count()!=0 && currentFilePriority.getW_count()!=0){
-			fileList.add(currentFilePriority);
-			System.out.println("filelist size" + fileList.size());
-				//}
-		}
-	}
-	public void setPolicy(){
-		int filesPolicyChanged = 0;
-		for(PriorityFile priorityFile: fileList){
-			int m = priorityFile.getM_count();
-			int w = priorityFile.getW_count();
-			int d = priorityFile.getD_count();
-			System.out.println("days " + d);
-			System.out.println("weeks " + w);
-			System.out.println("months " + m);
-			byte targetStoragePolicy = HdfsConstants.HOT_STORAGE_POLICY_ID;
-			if(m == 0){
-				targetStoragePolicy = HdfsConstants.COLD_STORAGE_POLICY_ID;	
-			}
-			else if(m > 0 && w == 0){
-				targetStoragePolicy = HdfsConstants.WARM_STORAGE_POLICY_ID;	
-			}
-			else if(d > 2 && w > 7){
-				targetStoragePolicy = HdfsConstants.ONESSD_STORAGE_POLICY_ID;	
-			}
-			else if(d >10){
-				targetStoragePolicy = HdfsConstants.ALLSSD_STORAGE_POLICY_ID;	
-			}
-			System.out.println("targetStorgePolicy " + targetStoragePolicy);
-			byte currentStoragePolicy = (byte)0;	
-			try{	
-				currentStoragePolicy = getStoragePolicy(priorityFile.getPath().toString());
-			}
-			catch(Exception e){
-				e.printStackTrace();
-				System.out.println("Caught unknown exception, continuing!!!");
-				continue;
-			}
-			System.out.println("currentStorgePolicy " + currentStoragePolicy);
-			/*if(currentStoragePolicy == (byte)0){
-				continue;
-			}*/
-			if(currentStoragePolicy != targetStoragePolicy){
-				System.out.println("current policy not equals target policy ");
-				filesPolicyChanged++;
-				try {
-					changePolicy(priorityFile.getPath().toString(), targetStoragePolicy);
-				} catch (IOException e) {
-					e.printStackTrace();
-					continue;
-				}
-			} 
+			//fileList.add(currentFilePriority);
+			setPolicy(currentFilePriority);
 		}
 		System.out.println("No of files with Policy changed: " + filesPolicyChanged);
 		if(filesPolicyChanged != 0){
@@ -167,6 +119,46 @@ public class PolicySetter extends Configured{
 			String[] args = {"", arg1};
 			Mover.main(args);		
 		}
+	}
+	public void setPolicy(PriorityFile priorityFile){
+		int m = priorityFile.getM_count();
+		int w = priorityFile.getW_count();
+		int d = priorityFile.getD_count();
+		System.out.println("days " + d);
+		System.out.println("weeks " + w);
+		System.out.println("months " + m);
+		byte targetStoragePolicy = HdfsConstants.HOT_STORAGE_POLICY_ID;
+		if(m == 0){
+			targetStoragePolicy = HdfsConstants.COLD_STORAGE_POLICY_ID;	
+		}
+		else if(m > 0 && w == 0){
+			targetStoragePolicy = HdfsConstants.WARM_STORAGE_POLICY_ID;	
+		}
+		else if(d > 2 && w > 7){
+			targetStoragePolicy = HdfsConstants.ONESSD_STORAGE_POLICY_ID;	
+		}
+		else if(d >10){
+			targetStoragePolicy = HdfsConstants.ALLSSD_STORAGE_POLICY_ID;	
+		}
+		System.out.println("targetStorgePolicy " + targetStoragePolicy);
+		byte currentStoragePolicy = (byte)0;	
+		try{	
+			currentStoragePolicy = getStoragePolicy(priorityFile.getPath().getName());
+		}
+		catch(Exception e){
+			System.out.println("Caught unknown exception, continuing!!!");
+			e.printStackTrace();
+		}
+		System.out.println("currentStorgePolicy " + currentStoragePolicy);
+		if(currentStoragePolicy != targetStoragePolicy){
+			System.out.println("current policy not equals target policy ");
+			filesPolicyChanged++;
+			try {
+				changePolicy(priorityFile.getPath().getName(), targetStoragePolicy);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} 
 	}
 
 	private void changePolicy(String path, byte targetStoragePolicy) throws IOException{
@@ -218,6 +210,7 @@ public class PolicySetter extends Configured{
 		if (status == null) {
 			throw new FileNotFoundException("File/Directory does not exist: " + argv);
 		}
+		System.out.println("Got status !!!");
 		byte storagePolicyId = status.getStoragePolicy();
 		if (storagePolicyId == BlockStoragePolicySuite.ID_UNSPECIFIED) {
 			System.out.println("The storage policy of " + argv + " is unspecified");
@@ -227,8 +220,9 @@ public class PolicySetter extends Configured{
 			return storagePolicyId;
 		}
 	}
-	
+
 	public static void main(String[] args) throws IOException{	
+		System.out.println("-----------README Storage policy " + String.valueOf(getStoragePolicy("/README.txt")));
 		PolicySetter deamon=new PolicySetter();	
 		try {
 			deamon.getFiles();
@@ -240,6 +234,5 @@ public class PolicySetter extends Configured{
 		} catch (IOException e) {
 			throw e;
 		}
-		deamon.setPolicy();
 	}
 }
