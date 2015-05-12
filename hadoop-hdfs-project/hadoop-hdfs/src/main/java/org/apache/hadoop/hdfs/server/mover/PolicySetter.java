@@ -154,7 +154,7 @@ public class PolicySetter extends Configured{
 			} 
 		}
 		//Make call to mover
-		String arg1 = "-p " + OUTPUTFILENAME;
+		String arg1 = "-f " + OUTPUTFILENAME;
 		String[] args = {"", arg1};
 		Mover.main(args);
 	}
