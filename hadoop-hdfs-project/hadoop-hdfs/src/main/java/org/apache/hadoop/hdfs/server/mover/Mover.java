@@ -658,6 +658,18 @@ public class Mover {
     }
   }
 
+  
+  
+  public static void migratorControlSwitch(String[] args)
+  {
+	  try {
+		  ToolRunner.run(new HdfsConfiguration(), new Cli(), args);  
+	    } catch (Throwable e) {
+	      LOG.error("Exiting " + Mover.class.getSimpleName()
+	          + " due to an exception", e);
+	      System.exit(-1);
+	    }
+  }
   /**
    * Run a Mover in command line.
    *
@@ -667,6 +679,12 @@ public class Mover {
     if (DFSUtil.parseHelpArgument(args, Cli.USAGE, System.out, true)) {
       System.exit(0);
     }
+    
+System.out.println("--------------args");
+for (int i = 0; i < args.length; i++) {
+	System.out.println(args[i]);
+}
+System.out.println("--------------args");
 
     try {
       System.exit(ToolRunner.run(new HdfsConfiguration(), new Cli(), args));

@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -30,7 +29,7 @@ import org.apache.hadoop.hdfs.server.mover.Mover;
 public class PolicySetter extends Configured{
 
 	long checkpointTime;
-	private static final String OUTPUTFILENAME = "mover_input.txt";
+	private static final String OUTPUTFILENAME = "/tmp/mover_input.txt";
 	private PrintWriter out = null;
 	private DistributedFileSystem dfs = null;
 	int filesPolicyChanged = 0;
@@ -71,6 +70,7 @@ public class PolicySetter extends Configured{
 			System.out.println("Path: " + status.getPath());
 			System.out.println("Path name: " + status.getPath().getName());
 			System.out.println("Parent name: " + status.getPath().getParent());
+			System.out.println("Name from URI: " + status.getPath().toUri().getPath());
 			System.out.println("is dir: "+status.isDirectory());
 			System.out.println("is file : "+status.isFile());
 			System.out.println("is symlink : "+status.isSymlink());
@@ -118,9 +118,9 @@ public class PolicySetter extends Configured{
 		System.out.println("No of files with Policy changed: " + filesPolicyChanged);
 		if(filesPolicyChanged != 0){
 			//Make call to mover
-			String arg1 = "-f " + OUTPUTFILENAME;
-			String[] args = {"", arg1};
-			Mover.main(args);		
+			String[] args = {"-f",OUTPUTFILENAME};
+			//Mover.main(args);
+			Mover.migratorControlSwitch(args);
 		}
 	}
 	public void setPolicy(PriorityFile priorityFile){
@@ -192,7 +192,7 @@ public class PolicySetter extends Configured{
 	private void writePathToFile(String path){
 		try {
 			out = new PrintWriter(new BufferedWriter(new FileWriter(OUTPUTFILENAME, true)));
-			out.print(path + ",");
+			out.print(filesPolicyChanged>1 ? ","+path:path);
 			out.close();
 		} catch (IOException e) {
 			System.out.println("Error while wrriiiting to file");
