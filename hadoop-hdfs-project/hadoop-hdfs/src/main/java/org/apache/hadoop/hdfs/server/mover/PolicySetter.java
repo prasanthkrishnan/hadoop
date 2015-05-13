@@ -175,13 +175,13 @@ public class PolicySetter extends Configured{
 		} 
 	}
 	public void displayPolicyChangeLog(){
-		System.out.println("------ Policy Change Log -------");
-		System.out.println("Change---------------------Count");
+		System.out.println("-------------------------- Policy Change Log -------------------------------------");
+		System.out.println("Change-----------------------------------------------------------------------Count");
 				
 		for(Entry<String,Long> e : policyChangeLogMap.entrySet()){
 			System.out.println(e.getKey()+"		"+e.getValue());
 		}
-		System.out.println("--------------------------------");
+		System.out.println("----------------------------------------------------------------------------------");
 	}
 	private void changePolicy(String path, byte targetStoragePolicy) throws IOException{
 		setStoragePolicy(path, byteToStringStoragePolicy(targetStoragePolicy));						
@@ -257,5 +257,7 @@ public class PolicySetter extends Configured{
 		} catch (IOException e) {
 			throw e;
 		}
+		
+		
 	}
 }
